@@ -1,0 +1,166 @@
+package Gomoku;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+
+public class LoginSystem extends JFrame {
+    private JTextField usernameField1;
+    private JPasswordField passwordField1;
+    private JTextField usernameField2;
+    private JPasswordField passwordField2;
+    private JButton loginButton, registerButton1, registerButton2;
+    private Map<String, String> users;
+    private Connection conn;
+    private UserDatabase UD;
+    LoginAction loginAction = new LoginAction();
+
+    public LoginSystem() {
+    	conn = DatabaseConnection.connect();
+    	UD = new UserDatabase(conn);
+        setTitle("User Login System");
+        setSize(400, 200);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(3, 2));
+
+        JLabel usernameLabel1 = new JLabel("Player 1:");
+        usernameField1 = new JTextField();
+        JLabel passwordLabel1 = new JLabel("Password 1:");
+        passwordField1 = new JPasswordField();
+        JLabel usernameLabel2 = new JLabel("Player 2:");
+        usernameField2 = new JTextField();
+        JLabel passwordLabel2 = new JLabel("Password 2:");
+        passwordField2 = new JPasswordField();
+
+        loginButton = new JButton("Login");
+        registerButton1 = new JButton("Register 1");
+        registerButton2 = new JButton("Register 2");
+
+        panel.add(usernameLabel1);
+        panel.add(usernameField1);
+        panel.add(passwordLabel1);
+        panel.add(passwordField1);
+        panel.add(usernameLabel2);
+        panel.add(usernameField2);
+        panel.add(passwordLabel2);
+        panel.add(passwordField2);
+        panel.add(loginButton);
+        panel.add(registerButton1);
+        panel.add(registerButton2);
+
+        add(panel, BorderLayout.CENTER);
+
+        users = loadUserData();
+
+        loginButton.addActionListener(loginAction);
+        registerButton1.addActionListener(new RegisterAction1());
+        registerButton2.addActionListener(new RegisterAction2());
+
+        setVisible(true);
+    }
+
+    class LoginAction implements ActionListener {
+    	@Override
+        public void actionPerformed(ActionEvent e) {
+            String username1 = usernameField1.getText();
+            String password1 = new String(passwordField1.getPassword());
+            String username2 = usernameField2.getText();
+            String password2 = new String(passwordField2.getPassword());
+
+            if (users.containsKey(username1) && users.get(username1).equals(password1)
+            	&& users.containsKey(username2) && users.get(username2).equals(password2)) {
+                JOptionPane.showMessageDialog(null, "Login Successfully！", 
+                		"tip", JOptionPane.INFORMATION_MESSAGE);
+                dispose();
+                
+                //Game starts!!!!!
+            	JFrame frame = new JFrame("Gomoku Game");
+		        GomokuPanel panel = new GomokuPanel(username1, username2);
+		        frame.add(panel);
+		        frame.setSize(800, 600);
+		        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		        frame.setVisible(true);
+				
+            } else {
+            	JOptionPane.showMessageDialog(null, "Wrong Password or Username do not registered！");
+            }
+        }
+    }
+    
+    class RegisterAction1 implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String username = usernameField1.getText();
+            String password = new String(passwordField1.getPassword());
+
+            if (users.containsKey(username)) {
+                JOptionPane.showMessageDialog(null, "Username exist, please use other username!");
+            } else {
+                users.put(username, password);
+                UD.registerUser(username, password);
+                JOptionPane.showMessageDialog(null, "Register Successfully！");
+            }
+        }
+    }
+    
+    class RegisterAction2 implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String username = usernameField2.getText();
+            String password = new String(passwordField2.getPassword());
+
+            if (users.containsKey(username)) {
+                JOptionPane.showMessageDialog(null, "Username exist, please use other username!");
+            } else {
+                users.put(username, password);
+                UD.registerUser(username, password);
+                JOptionPane.showMessageDialog(null, "Register Successfully！");
+            }
+        }
+    }
+
+    private Map<String, String> loadUserData() {
+    	Map<String, String> userData = new HashMap<>();
+        String sql = "SELECT username, password FROM users";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            while (rs.next()) {
+                String username = rs.getString("username");
+                String password = rs.getString("password");
+                userData.put(username, password);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Fail to load user's data: " + e.getMessage());
+        }
+
+        return userData;
+    }
+    
+    public static void setUIFont(Font font) {
+        java.util.Enumeration<Object> keys = UIManager.getDefaults().keys();
+        while (keys.hasMoreElements()) {
+            Object key = keys.nextElement();
+            Object value = UIManager.get(key);
+            if (value instanceof Font) {
+                UIManager.put(key, font);
+            }
+        }
+    }
+    
+    public static void main(String[] args) {
+    	setUIFont(new Font("Arial", Font.PLAIN, 20));
+    	LoginSystem loginsystem = new LoginSystem();
+        
+    }
+}

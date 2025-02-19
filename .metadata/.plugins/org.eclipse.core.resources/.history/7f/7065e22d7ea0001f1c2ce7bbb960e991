@@ -1,0 +1,145 @@
+package Gomoku;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.geom.Rectangle2D;
+
+public class ChessBoard extends JPanel {
+    // 棋盘大小
+    private static final int SIZE = 15;
+    private static final int GRID = 50; // 每个格子的像素大小
+    public int[][] board = new int[SIZE][SIZE]; // 用于存储棋盘上各个点的状态
+    private int clickcount = 0;
+    public int winner = 0;
+
+    public ChessBoard() {
+        // 初始化鼠标监听器
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int x = e.getX() / GRID;
+                int y = e.getY() / GRID;
+
+                if (x >= 0 && x < SIZE && y >= 0 && y < SIZE && clickcount%2 == 0) {
+                    board[x][y] = 1;
+                }
+                else if(x >= 0 && x < SIZE && y >= 0 && y < SIZE && clickcount%2 == 1) {
+                    board[x][y] = 2;
+                }
+                repaint();
+                clickcount++;
+            }
+        });
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setStroke(new BasicStroke(2));
+        // 画棋盘的格子
+        for (int i = 0; i <= SIZE; i++) {
+            g2.drawLine(i * GRID, 0, i * GRID, SIZE * GRID); // 画纵线
+            g2.drawLine(0, i * GRID, SIZE * GRID, i * GRID); // 画横线
+        }
+
+        // 画交叉点上的图案（根据board数组的值选择图案）
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                if (board[i][j] == 1) {
+                    g2.setColor(Color.BLACK); // 这里可以换成其他的图案
+                    g2.fillOval(i * GRID + GRID / 4, j * GRID + GRID / 4, GRID / 2, GRID / 2);
+                    
+                }
+                else if (board[i][j] == 2) {
+                	g2.setColor(Color.WHITE); // 这里可以换成其他的图案
+                    g2.fillOval(i * GRID + GRID / 4, j * GRID + GRID / 4, GRID / 2, GRID / 2);
+                	//g2.setStroke(new BasicStroke(4));
+                	//g2.setColor(Color.RED); // 这里可以换成其他的图案
+                    //g2.drawLine(i * GRID + 5, j * GRID + 5, (i + 1) * GRID - 5, (j + 1) * GRID - 5);
+                    //g2.drawLine((i + 1) * GRID - 5, j * GRID + 5, i * GRID + 5, (j + 1) * GRID - 5);
+                    //g2.setStroke(new BasicStroke(1));
+                }
+            }
+        }
+    }
+
+    @Override
+    public Dimension getPreferredSize() {
+        return new Dimension(SIZE * GRID, SIZE * GRID); // 设置棋盘大小
+    }
+    
+    public int checkHorizontal(int x, int y) {
+    	if(board[x][y] == 1 && x <= 10){
+    		if(board[x+1][y]==1 && board[x+2][y]==1 && board[x+3][y]==1 && board[x+4][y]==1) {
+    			return 1;
+    		}
+    	}
+    	else if(board[x][y] == 2 && x <= 10){
+    		if(board[x+1][y]==2 && board[x+2][y]==2 && board[x+3][y]==2 && board[x+4][y]==2) {
+    			return 2;
+    		}
+    	}
+		return 0;
+    	
+    }
+    public int checkVertical(int x, int y) {
+    	if(board[x][y] == 1 && y <= 10){
+    		if(board[x][y+1]==1 && board[x][y+2]==1 && board[x][y+3]==1 && board[x][y+4]==1) {
+    			return 1;
+    		}
+    	}
+    	else if(board[x][y] == 2 && y <= 10){
+    		if(board[x][y+1]==2 && board[x][y+2]==2 && board[x][y+3]==2 && board[x][y+4]==2) {
+    			return 2;
+    		}
+    	}
+    	return 0;
+    }
+    public int checkSlope(int x, int y) {
+    	if(board[x][y] == 1 && x <= 10 && y <= 10){
+    		if(board[x+1][y+1]==1 && board[x+2][y+2]==1 && board[x+3][y+3]==1 && board[x+4][y+4]==1) {
+    			return 1;
+    		}
+    	}
+    	else if(board[x][y] == 2 && x <= 10 && y <= 10){
+    		if(board[x+1][y+1]==2 && board[x+2][y+2]==2 && board[x+3][y+3]==2 && board[x+4][y+4]==2) {
+    			return 2;
+    		}
+    	}
+    	if(board[x][y] == 1 && x >= 4 && y <= 10){
+    		if(board[x-1][y+1]==1 && board[x-2][y+2]==1 && board[x-3][y+3]==1 && board[x-4][y+4]==1) {
+    			return 1;
+    		}
+    	}
+    	else if(board[x][y] == 2 && x >= 4 && y <= 10){
+    		if(board[x-1][y+1]==2 && board[x-2][y+2]==2 && board[x-3][y+3]==2 && board[x-4][y+4]==2) {
+    			return 2;
+    		}
+    	}
+    	return 0;
+    	
+    }
+    
+    public int getWinner() {
+    	int winStatue = 0;
+    	for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                if (board[i][j] != 0) {
+                	winStatue = Math.max(checkHorizontal(i, j),checkVertical(i, j));
+                	winStatue = Math.max(checkSlope(i, j),winStatue);
+                }
+                if (winStatue != 0) {
+                	break;
+                }
+            }
+            if (winStatue != 0) {
+            	break;
+            }
+        }
+    	return winStatue;
+    }
+}

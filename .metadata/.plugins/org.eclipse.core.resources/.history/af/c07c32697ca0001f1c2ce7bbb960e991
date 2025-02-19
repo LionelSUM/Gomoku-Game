@@ -1,0 +1,142 @@
+package Gomoku;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+public class GomokuPanel extends JPanel{
+	private JLabel titleLabel;
+    private ChessBoard chessboard;
+    private JTextArea playerInfoArea;
+    private String p1;
+    private String p2;
+    private String player;
+    private JLabel imageLabel;
+    private JTextArea statusArea;
+    private String status;
+    private String winner;
+
+    public GomokuPanel(String p1, String p2) {
+    	this.p1 = p1;
+    	this.p2 = p2;
+        setLayout(new BorderLayout());
+        player = p1;
+        status = "on";
+
+        // 创建标题
+        titleLabel = new JLabel("GOMOKU", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 66));
+        add(titleLabel, BorderLayout.NORTH);
+        
+        // 添加下方游戏状态栏
+        statusArea = new JTextArea(2,20); // 设置文本框的行数和列数
+        statusArea.setEditable(false); // 设置不可编辑
+        statusArea.setFont(new Font("Arial", Font.BOLD, 36));
+        statusArea.setBackground(Color.WHITE); // 设置背景颜色
+        statusArea.setForeground(Color.BLACK); // 设置文本颜色
+        add(statusArea, BorderLayout.SOUTH);
+
+        // 创建玩家信息区域
+        playerInfoArea = new JTextArea();
+        playerInfoArea.setFont(new Font("Arial", Font.BOLD, 27));
+        playerInfoArea.setBackground(Color.LIGHT_GRAY); // 设置背景颜色
+        playerInfoArea.setForeground(Color.BLACK); // 设置文本颜色
+        add(playerInfoArea, BorderLayout.EAST);
+        
+        // 添加帅气图片
+        ImageIcon computerImage = new ImageIcon("D:\\Course_Material\\Java\\Final Project\\Beat.png");
+        imageLabel = new JLabel(computerImage);
+        add(imageLabel, BorderLayout.WEST);
+        
+        // 初始化玩家信息
+        updatePlayerInfo();
+        
+        // 创建棋盘
+        chessboard = new ChessBoard();
+        chessboard.setBackground(new Color(204,119,35)); // 棋盘背景色
+        chessboard.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+            	player = player.equals(p1) ? p2 : p1;
+            	if(chessboard.getWinner() == 1) {
+            		status = "over";
+            		winner = p1;
+            	}
+            	else if(chessboard.getWinner() == 2) {
+            		status = "over";
+            		winner = p2;
+            	}
+            	updatePlayerInfo();
+            }
+        });
+        JPanel chessboardPanel = new JPanel(new BorderLayout());
+		chessboardPanel.add(chessboard, BorderLayout.CENTER);
+        chessboardPanel.setBorder(BorderFactory.createEmptyBorder(41, 113, 42, 113)); // 添加外边距
+        add(chessboardPanel, BorderLayout.CENTER);
+    }
+    
+    public void updatePlayerInfo() {
+    	if(status == "on") {
+    		statusArea.setText("                                                        "
+    							+ "Game status: Game On!\n"+
+     						   "                                                        "
+   						    + "TRY YOUR BEST TO WIN THE GOMOKU!!!");
+    		playerInfoArea.setText(" GAME between \n " + p1 + " & " + p2 +"\n\n\n\n"
+					+ "\n\n\n\n\n\n\n\n\n\n\n\n\n Current Player:   \n " + player);
+    		if(player == p1) {
+    			playerInfoArea.append("\n\n Shape:\n (Circle Black)");
+    		}
+    		else if(player == p2) {
+    			playerInfoArea.append("\n\n Shape:\n (Circle White)");
+    		}
+    	}
+    	else if(status == "over") {
+            statusArea.setBackground(Color.WHITE); // 设置背景颜色
+            statusArea.setForeground(Color.RED); // 设置文本颜色
+    		statusArea.setText("                                                        "
+    							+ "Game status: Game Over!!!!!!!!!!\n"+
+    						   "                                                        "
+    						    + "WINNER IS " + winner);
+    		showWinnerDialog(winner);
+    	}
+    	
+    }
+    
+    public void showWinnerDialog(String winnerName) {
+        // 自定义对话框内容
+        String message = "The winner is " + winnerName + "!!!!!!\n Next round?";
+        
+        // 显示确认对话框，选项为“是”或“否”
+        int result = JOptionPane.showConfirmDialog(
+                this,
+                message,
+                "Game Over",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+        );
+        
+        // 处理用户选择
+        if (result == JOptionPane.NO_OPTION) {
+        	System.exit(0); // 退出游戏
+        }
+        if(result == JOptionPane.YES_OPTION) {
+        	for (int i = 0; i < chessboard.board.length; i++) {
+        	    for (int j = 0; j < chessboard.board[i].length; j++) {
+        	    	chessboard.board[i][j] = 0;
+        	    }
+        	}
+        }
+    }
+    
+	/*
+    public static void main(String[] args) {
+        JFrame frame = new JFrame("Gomoku Game");
+        GomokuPanel panel = new GomokuPanel();
+        frame.add(panel);
+        frame.setSize(800, 600);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setVisible(true);
+    }
+	*/
+}
